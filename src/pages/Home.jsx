@@ -5,7 +5,7 @@ import ExclusiveOffers from '../components/Offer/ExclusiveOffers'
 import Testimonial from '../components/Testimonial/Testimonial'
 import NewLetter from '../components/NewLetter/NewLetter'
 import Footer from '../components/Footer/Footer'
-import AllRoom from './AllRoom'
+import AllRooms from './AllRooms'
 
 const Home = () => {
   return (
@@ -20,7 +20,6 @@ const Home = () => {
 
         <NewLetter />
 
-        <Footer />
     </>
   )
 }
