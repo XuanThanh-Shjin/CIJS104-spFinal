@@ -2,7 +2,9 @@ import React from 'react'
 import Nav from './components/Nav/Navbar'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import Home from './pages/Home';
-import AllRoom from './pages/AllRoom';
+import AllRooms from './pages/AllRooms';
+import RoomDetails from './pages/RoomDetails';
+import Footer from './components/Footer/Footer';
 
 const App = () => {
 
@@ -15,9 +17,11 @@ const App = () => {
       <div className='min-h-[70vh]'>
         <Routes>
           <Route path='/' element={<Home />} />
-          <Route path='/room' element={<AllRoom />} />
+          <Route path='/rooms' element={<AllRooms />} />
+          <Route path='/rooms/:id' element={<RoomDetails />} />
         </Routes>
       </div>
+      <Footer />
     </div>
   )
 }
