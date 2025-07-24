@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { assets } from '../../assets/assets';
 import { useClerk, useUser, UserButton } from '@clerk/clerk-react';
+import { assets } from '../assets/assets';
 
 
 
@@ -50,7 +50,8 @@ const Nav = () => {
 
                 {/* Logo */}
                 <Link to="/" >
-                    <img src={assets.logo} alt="logo" className={`h-9 ${isScrolled && "invert opacity-80"}`} />
+                    {/* <img src={assets.logo} alt="logo" className={`h-9 ${isScrolled && "invert opacity-80"}`} /> */}
+                    <p className={`h-9 text-white text-3xl ${isScrolled && "invert opacity-80"}`}>StayykHome</p>
                 </Link>
 
                 {/* Desktop Nav */}
@@ -61,9 +62,9 @@ const Nav = () => {
                             <div className={`${isScrolled ? "bg-gray-700" : "bg-white"} h-0.5 w-0 group-hover:w-full transition-all duration-300`} />
                         </a>
                     ))}
-                    <button className={`border px-4 py-1 text-sm font-light rounded-full cursor-pointer ${isScrolled ? 'text-black' : 'text-white'} transition-all`} onClick={() => navigate('/owner')}>
+                    {/* <button className={`border px-4 py-1 text-sm font-light rounded-full cursor-pointer ${isScrolled ? 'text-black' : 'text-white'} transition-all`} onClick={() => navigate('/owner')}>
                         Dashboard
-                    </button>
+                    </button> */}
                 </div>
 
                 {/* Desktop Right */}
@@ -105,9 +106,9 @@ const Nav = () => {
                         </a>
                     ))}
 
-                    {user && <button className="px-4 py-1 text-sm font-light transition-all border rounded-full cursor-pointer" onClick={() => navigate('/owner')}>
+                    {/* {user && <button className="px-4 py-1 text-sm font-light transition-all border rounded-full cursor-pointer" onClick={() => navigate('/owner')}>
                         Dashboard
-                    </button>}
+                    </button>} */}
 
                     {!user && <button onClick={openSignIn} className="bg-black text-white px-8 py-2.5 rounded-full transition-all duration-500">
                         Login
