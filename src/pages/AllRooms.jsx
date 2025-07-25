@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { assets, facilityIcons, roomsDummyData } from '../assets/assets'
 import { useNavigate } from 'react-router-dom'
 import StarRating from '../components/StarRating'
@@ -24,10 +24,17 @@ const RadioButton = ({label, selected = false, onChange = () => { }}) => {
 
 const AllRooms = () => {
     const navigate = useNavigate();
+    const [allRooms, setAllRooms] = useState([]);
     const [openFilters, setOpenFilters] = useState(false)
     const [selectedRoomTypes, setSelectedRoomTypes] = useState([]);
     const [selectedPriceRanges, setSelectedPriceRanges] = useState([]);
     const [selectedSortOption, setSelectedSortOption] = useState('');
+
+    useEffect(() => {
+        const customRooms = JSON.parse(localStorage.getItem('customRooms')) || [];
+        const combinedRooms = [...roomsDummyData, ...customRooms];
+        setAllRooms(combinedRooms);
+    }, []);
 
     const handleRoomTypeChange = (checked, label) => {
         if (checked) {
@@ -56,7 +63,7 @@ const AllRooms = () => {
         setSelectedSortOption('');
     };
 
-    const filteredAndSortedRooms = roomsDummyData
+    const filteredAndSortedRooms = allRooms
         .filter(room => {
             if (selectedRoomTypes.length === 0) return true;
             return selectedRoomTypes.includes(room.roomType);
@@ -105,10 +112,10 @@ const AllRooms = () => {
             <div className='flex justify-between'>
                 <div className='w-full lg:w-2/3'>
                 {filteredAndSortedRooms.map((room) => (
-                    <div key={room._id} className='flex my-4'>
+                    <div key={room._id} className='flex my-6 mb-10'>
                         <img onClick={() => {navigate(`/rooms/${room._id}`); scrollTo(0, 0)}}
                         src={room.images[0]} alt="hotel-img" title='View Room Details' className='object-cover shadow-lg cursor-pointer max-h-64 md:w-2/5 rounded-xl' />
-                        <div className='flex flex-col gap-2 mx-4 md:w-1/2'>
+                        <div className='flex flex-col mx-4 md:w-1/2'>
                             <p className='text-gray-500'>{room.hotel.city}</p>
                             <p onClick={() => {navigate(`/rooms/${room._id}`); scrollTo(0, 0)}} className='text-3xl text-gray-800 font-[playfair] cursor-pointer'>{room.hotel.name}</p>
                             <div className='flex items-center'>
@@ -127,11 +134,12 @@ const AllRooms = () => {
                                     </div>
                                 ))}
                             </div>
-                            <p className='text-xl font-medium text-grey-700'>${room.pricePerNight} /night</p>
+                            <p className='text-xl font-medium text-gray-600'>${room.pricePerNight} /night</p>
                         </div>
                     </div>
                 ))}
                 </div>
+                
                 <div className='text-gray-600 bg-white border border-gray-300 w-80 max-lg:mb-8 h-fit'>
                     <div className={`flex items-center justify-between px-5 py-2.5 min-lg:border-b border-gray-300 ${openFilters && "border-b"}`}>
                         <p className='text-base font-medium text-gray-800'>FILTERS</p>

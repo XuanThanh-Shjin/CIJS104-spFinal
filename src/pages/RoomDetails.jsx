@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import StarRating from '../components/StarRating'
 import { useClerk } from '@clerk/clerk-react'
 
-const RoomDetails = ({toggleHotelRegister}) => {
+const RoomDetails = () => {
     const {id} = useParams()
     const [room, setRoom] = useState({ images: [], amenities: [] });
     const [mainImage, setMainImage] = useState(null)
@@ -13,40 +13,62 @@ const RoomDetails = ({toggleHotelRegister}) => {
         checkOut: '',
         guests: 1,
     })
+    const [isAvailable, setIsAvailable] = useState(false)
+    const [showNotification, setShowNotification] = useState(false)
+    const [totalPrice, setTotalPrice] = useState(0)
     const navigate = useNavigate()
 
     useEffect(() => {
-       const room = roomsDummyData.find(room => room._id === id)
-       room && setRoom(room)
-       room && setMainImage(room.images[0])
-    },[])
+       const customRooms = JSON.parse(localStorage.getItem('customRooms')) || [];
+       const combinedRooms = [...roomsDummyData, ...customRooms];
+       const room = combinedRooms.find(room => room._id === id);
+       
+       if (room) {
+           setRoom(room);
+           setMainImage(room.images[0]);
+       }
+    },[id])
+
+    useEffect(() => {
+        if (booking.checkIn && booking.checkOut && room.pricePerNight) {
+            const checkInDate = new Date(booking.checkIn);
+            const checkOutDate = new Date(booking.checkOut);
+            const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
+            const nights = Math.ceil(timeDiff / (1000 * 3600 * 24));
+            if (nights > 0) {
+                setTotalPrice(room.pricePerNight * nights * booking.guests);
+            } else {
+                setTotalPrice(0);
+            }
+        }
+    }, [booking, room.pricePerNight]);
 
     const {openSignIn, user} = useClerk();
-    const handleNavigate = (e) => {
-        e.preventDefault();
-        
-        if (!user) {
-            openSignIn(e)
-        } else {
-            toggleHotelRegister()
-        }
-    }
 
     const handleBooking = (e) => {
         e.preventDefault();
+        if (!isAvailable) {
+            setShowNotification(true);
+            setIsAvailable(true);
+            setTimeout(() => {
+                setShowNotification(false);
+            }, 3000);
+            return;
+        }
+
         if (!user) {
             openSignIn()
             return
         }
-        const checkInDate = new Date(booking.checkIn);
-        const checkOutDate = new Date(booking.checkOut);
-        const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
-        const night = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
         const newBooking = {
             ...room,
             ...booking,
-            totalPrice: room.pricePerNight * night,
+            totalPrice: totalPrice,
+            user: {
+                fullName: user.fullName,
+                primaryEmailAddress: user.primaryEmailAddress.emailAddress,
+                imageUrl: user.imageUrl,
+            }
         }
         const bookings = JSON.parse(localStorage.getItem('bookings')) || []
         localStorage.setItem('bookings', JSON.stringify([...bookings, newBooking]))
@@ -55,6 +77,11 @@ const RoomDetails = ({toggleHotelRegister}) => {
 
   return room && (
     <>
+    {showNotification && (
+        <div className="fixed z-50 px-4 py-2 text-white bg-green-500 rounded-lg shadow-lg top-20 right-[45%]">
+            Room is Available
+        </div>
+    )}
     <div className='px-4 py-28 md:py-35 md:mx-16 lg:px-24 xl:px-32'>
         <div className='flex flex-col items-start gap-2 md:flex-row md:items-center'>
             <h1 className='text-3xl md:text-4xl font-playfair'>
@@ -100,14 +127,14 @@ const RoomDetails = ({toggleHotelRegister}) => {
             <div className='flex flex-col flex-wrap items-start gap-4 text-gray-500 md:flex-row md:items-center md:gap-10'>
                     <div className='flex flex-col'>
                         <label htmlFor="checkInDate" className='font-medium'>Check-In</label>
-                        <input onChange={(e) => setBooking({...booking, checkIn: e.target.value})} value={booking.checkIn} type="date" id='checkInDate' placeholder='Check-In' className='w-full rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none' required />
+                        <input onChange={(e) => setBooking({...booking, checkIn: e.target.value})} value={booking.checkIn} type="date" id='checkInDate' placeholder='Check-In' className='w-48 rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none' required />
                     </div>
-                    <div className='w-px h-15 bg-gray-300/70 max-md:hidden'></div>
+                    <div className='w-px bg-gray-500 h-15 max-md:hidden'></div>
                     <div className='flex flex-col'>
                         <label htmlFor="checkOutDate" className='font-medium'>Check-Out</label>
-                        <input onChange={(e) => setBooking({...booking, checkOut: e.target.value})} value={booking.checkOut} type="date" id='checkOutDate' placeholder='Check-Out' className='w-full rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none' required />
+                        <input onChange={(e) => setBooking({...booking, checkOut: e.target.value})} value={booking.checkOut} type="date" id='checkOutDate' placeholder='Check-Out' className='w-48 rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none' required />
                     </div>
-                    <div className='w-px h-15 bg-gray-300/70 max-md:hidden'></div>
+                    <div className='w-px bg-gray-500 h-15 max-md:hidden'></div>
                     <div className='flex flex-col'>
                         <label htmlFor="guests" className='font-medium'>Guests</label>
                         <input onChange={(e) => setBooking({...booking, guests: e.target.value})} value={booking.guests} type="number" id='guests' placeholder='0' className='max-w-20 rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none' required />
@@ -115,7 +142,7 @@ const RoomDetails = ({toggleHotelRegister}) => {
             </div>
 
             <button  type='submit' className='p-6 py-3 text-base text-white transition-all rounded-md cursor-pointer bg-blue-500/100 hover:bg-blue-600 active:scale-95 max-md:w-full max-md:mt-6 md:px-25 md:py-4'>
-                Check Availability
+                {isAvailable ? 'Book Now' : 'Check Availability'}
             </button>
         </form>
 
@@ -146,7 +173,7 @@ const RoomDetails = ({toggleHotelRegister}) => {
                     </div>
                 </div>
             </div>
-            <button onClick={handleNavigate} className='px-6 py-2.5 mt-4 rounded text-white bg-blue-500/100 hover:bg-blue-600 transition-all cursor-pointer'>Contact Now</button>
+            <button className='px-6 py-2.5 mt-4 rounded text-white bg-blue-500/100 hover:bg-blue-600 transition-all cursor-pointer'>Contact Now</button>
         </div>
     </div>
     </>
