@@ -52,6 +52,7 @@ const RoomDetails = ({toggleHotelRegister}) => {
         localStorage.setItem('bookings', JSON.stringify([...bookings, newBooking]))
         navigate('/my-bookings')
     }
+    
 
   return room && (
     <>

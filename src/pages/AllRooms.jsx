@@ -8,7 +8,10 @@ const CheckBox = ({label, selected = false, onChange = () => { }}) => {
     return (
         <label className="flex items-center gap-3 mt-2 text-sm cursor-pointer" htmlFor="">
             <input type="checkbox" checked={selected} onChange = {(e)=>onChange(e.target.checked, label)} />
-            <span className='font-light select-none'>{label}</span>
+            <span className='font-light select-none'
+            onClick={() => onChange(!selected, label)}
+             > {label}
+            </span>
         </label>
     )
 }
