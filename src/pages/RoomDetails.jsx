@@ -11,12 +11,21 @@ const RoomDetails = () => {
     const [booking, setBooking] = useState({
         checkIn: '',
         checkOut: '',
+        checkInTime: '',
+        checkOutTime: '',
         guests: 1,
     })
     const [isAvailable, setIsAvailable] = useState(false)
     const [showNotification, setShowNotification] = useState(false)
     const [totalPrice, setTotalPrice] = useState(0)
-    const navigate = useNavigate()
+    const [nights, setNights] = useState(0);
+    const navigate = useNavigate();
+
+    // Đảm bảo biến today và currentTime luôn được định nghĩa trong phạm vi function
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const currentTime = now.toTimeString().slice(0,5);
+
 
     useEffect(() => {
        const customRooms = JSON.parse(localStorage.getItem('customRooms')) || [];
@@ -35,8 +44,9 @@ const RoomDetails = () => {
             const checkOutDate = new Date(booking.checkOut);
             const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
             const nights = Math.ceil(timeDiff / (1000 * 3600 * 24));
+            setNights(nights > 0 ? nights : 0);
             if (nights > 0) {
-                setTotalPrice(room.pricePerNight * nights * booking.guests);
+                setTotalPrice(room.pricePerNight * nights); 
             } else {
                 setTotalPrice(0);
             }
@@ -47,6 +57,17 @@ const RoomDetails = () => {
 
     const handleBooking = (e) => {
         e.preventDefault();
+        // Kiểm tra giờ Check-In nếu là hôm nay
+        const now = new Date();
+        const today = now.toISOString().split('T')[0];
+        const currentTime = now.toTimeString().slice(0,5);
+        if (
+          booking.checkIn === today &&
+          booking.checkInTime < currentTime
+        ) {
+          alert('Thời gian Check-In phải sau thời điểm hiện tại!');
+          return;
+        }
         if (!isAvailable) {
             setShowNotification(true);
             setIsAvailable(true);
@@ -122,23 +143,80 @@ const RoomDetails = () => {
                     ))}
                 </div>
             </div>
-            <p className='text-2xl font-medium'>${room.pricePerNight}/night</p>
+            <p className='text-xl font-medium text-grey-700'>
+  ${room.pricePerNight} /night
+</p>
+{totalPrice > 0 && (
+  <p className='text-lg font-semibold text-blue-600 mt-1'>
+    Total: ${totalPrice} ({nights} night{nights > 1 ? 's' : ''})
+  </p>
+)}
         </div>
         <form onSubmit={handleBooking} className='flex flex-col md:flex-row items-start md:items-center justify-between bg-white shadow-[0px_0px_20px_rgba(0,0,0,0.15)] p-6 rounded-xl mx-auto mt-16 max-w-6xl'>
             <div className='flex flex-col flex-wrap items-start gap-4 text-gray-500 md:flex-row md:items-center md:gap-10'>
-                    <div className='flex flex-col'>
+                    <div className='flex flex-col' onClick={() => document.getElementById('checkInDate')?.focus()} style={{cursor: 'pointer'}}>
                         <label htmlFor="checkInDate" className='font-medium'>Check-In</label>
-                        <input onChange={(e) => setBooking({...booking, checkIn: e.target.value})} value={booking.checkIn} type="date" id='checkInDate' placeholder='Check-In' className='w-48 rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none' required />
+                        <input
+                            onChange={(e) => setBooking({...booking, checkIn: e.target.value, checkOut: (booking.checkOut && e.target.value && booking.checkOut <= e.target.value) ? '' : booking.checkOut})}
+                            value={booking.checkIn}
+                            type="date"
+                            id='checkInDate'
+                            className='w-32 rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none'
+                            required
+                            min={new Date().toISOString().split('T')[0]}
+                        />
+                    </div>
+                    <div className='flex flex-col'>
+                        <label htmlFor="checkInTime" className='font-medium'>Check-In Time</label>
+                        <input
+                            onChange={(e) => setBooking({...booking, checkInTime: e.target.value})}
+                            value={booking.checkInTime}
+                            type="time"
+                            id='checkInTime'
+                            className='w-24 rounded border border-gray-300 px-2 py-2 mt-1.5 outline-none'
+                            required
+                            min={booking.checkIn === today ? currentTime : '00:00'}
+                            key={booking.checkIn + currentTime}
+                        />
                     </div>
                     <div className='w-px bg-gray-500 h-15 max-md:hidden'></div>
                     <div className='flex flex-col'>
                         <label htmlFor="checkOutDate" className='font-medium'>Check-Out</label>
-                        <input onChange={(e) => setBooking({...booking, checkOut: e.target.value})} value={booking.checkOut} type="date" id='checkOutDate' placeholder='Check-Out' className='w-48 rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none' required />
+                        <input 
+                            onChange={(e) => {
+                                if (!booking.checkIn || e.target.value > booking.checkIn) {
+                                    setBooking({...booking, checkOut: e.target.value});
+                                } else {
+                                    setBooking({...booking, checkOut: ''});
+                                    alert('Check-Out date must be after Check-In date!');
+                                }
+                            }}
+                            value={booking.checkOut}
+                            type="date"
+                            id='checkOutDate'
+                            className='w-32 rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none'
+                            required
+                            min={booking.checkIn || undefined}
+                        />
+                    </div>
+                    <div className='flex flex-col'>
+                        <label htmlFor="checkOutTime" className='font-medium'>Check-Out Time</label>
+                        <input
+                            onChange={(e) => setBooking({...booking, checkOutTime: e.target.value})}
+                            value={booking.checkOutTime}
+                            type="time"
+                            id='checkOutTime'
+                            className='w-24 rounded border border-gray-300 px-2 py-2 mt-1.5 outline-none'
+                            required
+                        />
                     </div>
                     <div className='w-px bg-gray-500 h-15 max-md:hidden'></div>
                     <div className='flex flex-col'>
                         <label htmlFor="guests" className='font-medium'>Guests</label>
-                        <input onChange={(e) => setBooking({...booking, guests: e.target.value})} value={booking.guests} type="number" id='guests' placeholder='0' className='max-w-20 rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none' required />
+                        <input onChange={(e) => {
+  const value = Math.max(1, Number(e.target.value));
+  setBooking({...booking, guests: value});
+}} value={booking.guests} type="number" id='guests' placeholder='0' className='max-w-20 rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none' required />
                     </div>
             </div>
 

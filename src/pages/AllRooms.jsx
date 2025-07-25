@@ -16,10 +16,11 @@ const CheckBox = ({label, selected = false, onChange = () => { }}) => {
     )
 }
 
-const RadioButton = ({label, selected = false, onChange = () => { }}) => {
+const RadioButton = ({label, selected = false, onChange = () => { }, id}) => {
+    const inputId = id || `radio-${label.replace(/\s+/g, '-')}`;
     return (
-        <label className="flex items-center gap-3 mt-2 text-sm cursor-pointer" htmlFor="">
-            <input type="radio" name="sortOption" checked={selected} onChange = {()=>onChange(label)} />
+        <label className="flex items-center gap-3 mt-2 text-sm cursor-pointer" htmlFor={inputId}>
+            <input id={inputId} type="radio" name="sortOption" checked={selected} onChange = {()=>onChange(label)} />
             <span className='font-light select-none'>{label}</span>
         </label>
     )
@@ -169,7 +170,7 @@ const AllRooms = () => {
                         <div className='px-5 pt-5 pb-7'>
                             <p className='pb-2 font-medium text-gray-800'>Sort By</p>
                             {sortOptions.map((option, index)=>(
-                                <RadioButton key={index} label={option} selected={selectedSortOption === option} onChange={handleSortChange}/> 
+                                <RadioButton key={index} label={option} selected={selectedSortOption === option} onChange={handleSortChange} id={`sort-${index}`} /> 
                             ))}
                         </div>
                     </div>

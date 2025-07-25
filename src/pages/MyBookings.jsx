@@ -60,6 +60,12 @@ const MyBookings = () => {
     setShowPaymentModal(false);
   };
 
+  const handleRemoveBooking = (bookingId) => {
+    const updatedBookings = bookings.filter(booking => booking._id !== bookingId);
+    setBookings(updatedBookings);
+    localStorage.setItem('bookings', JSON.stringify(updatedBookings));
+  };
+
   // const handleReset = () => {
   //   localStorage.removeItem('bookings');
   //   setBookings([]);
@@ -97,17 +103,22 @@ const MyBookings = () => {
                       <span>Guests: {booking.guests}</span>
                     </div>
                     <p className='text-base'>Total: ${booking.totalPrice}</p>
+                    <button onClick={() => handleRemoveBooking(booking._id)} className='mt-2 px-3 py-1 text-xs text-white bg-red-500 rounded hover:bg-red-600 transition-all w-fit'>Remove</button>
                   </div>
                 </div>
                 {/* Date & Timings */}
                 <div className='flex flex-row gap-8 md:items-center md:gap-12'>
                   <div>
                     <p>Check-In:</p>
-                    <p className='text-sm text-gray-600'>{new Date(booking.checkIn).toDateString()}</p>
+                    <p className='text-sm text-gray-600'>
+                      {new Date(booking.checkIn).toLocaleDateString()} {booking.checkInTime}
+                    </p>
                   </div>
                   <div>
                     <p>Check-Out:</p>
-                    <p className='text-sm text-gray-600'>{new Date(booking.checkOut).toDateString()}</p>
+                    <p className='text-sm text-gray-600'>
+                      {new Date(booking.checkOut).toLocaleDateString()} {booking.checkOutTime}
+                    </p>
                   </div>
                 </div>
                 {/* Payment */}
